@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html layout:decorator="admin/index"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<main layout:fragment="main">
+
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <h1 th:text="#{admin.users.header}"></h1>
+            </div>
+
+            <div class="col s12">
+                <a
+                        class="right amber btn hide-on-small-only modal-trigger"
+                        href="#create-user-modal"
+                        th:text="#{admin.users.create}"
+                ></a>
+            </div>
+        </div>
+
+        <nav>
+            <div class="nav-wrapper white black-text">
+                <a
+                        class="btn btn-flat search-exit"
+                        th:href="@{/admin/users}"
+                        th:text="#{search.clear}"
+                        th:unless="${#strings.isEmpty(search)}"
+                ></a>
+
+                <form action="/admin/users">
+                    <div class="input-field">
+                        <input
+                                id="search"
+                                name="search"
+                                th:placeholder="#{admin.users.search}"
+                                th:value="${search}"
+                                type="search"
+                        />
+                        <label for="search"><i class="material-icons black-text">search</i></label>
+                    </div>
+                </form>
+            </div>
+        </nav>
+
+
+        <div
+                class="section-separator"
+                th:if="${#lists.isEmpty(page.content)}"
+                th:text="#{admin.users.emptyusers}"
+        ></div>
+
+
+        <ul class="collection z-depth-1" th:unless="${#lists.isEmpty(page.content)}">
+
+            <li class="collection-item" th:each="user : ${page.content}">
+                <div class="title">
+                    <a class="teal-text" th:href="@{/admin/users/__${user.id}__}" th:text="${user.name}"></a>
+                </div>
+                <div>
+                    <span th:if="${user instanceof T(at.ac.tuwien.inso.sqm.entity.LecturerEntity)}"
+                          th:text="#{admin.users.lecturer}"></span>
+                    <span th:if="${user instanceof T(at.ac.tuwien.inso.sqm.entity.StudentEntity)}"
+                          th:text="#{admin.users.student}"></span>
+                    <span>, </span>
+                    <span th:text="${user.identificationNumber}"></span>
+                    <br/>
+                    <span th:text="${user.email}"></span>
+                    <span class="red-text" th:if="${!user.activated}"
+                          th:text="'(' + (#{admin.users.inactive}) + ')'"></span>
+                </div>
+            </li>
+        </ul>
+
+        <!-- Pagination -->
+        <ul class="pagination center" th:if="${page.totalPages > 1}">
+
+            <!-- Hide the chevron if the first page is active -->
+            <li class="disabled" th:if="${page.isFirst()}">
+                <a href="#"><i class="material-icons disabled">chevron_left</i></a>
+            </li>
+
+            <li th:if="${not page.isFirst()}">
+                <a th:href="@{/admin/users/page/__${page.getNumber()}__?search=__${search}__}">
+                    <i class="material-icons">chevron_left</i>
+                </a>
+            </li>
+
+
+            <!-- Only the 3 numbers before the active one are shown.
+                 If there are more numbers, we only show "1" followed by "…”
+            -->
+            <li class="waves-effect" th:if="${page.getNumber() >= 4}">
+                <a th:href="@{/admin/users?search=__${search}__}">1</a>
+            </li>
+
+            <li th:if="${page.getNumber() > 4}">
+                <a>…</a>
+            </li>
+
+
+            <!-- Show the 3 numbers before the active page -->
+            <li class="waves-effect" th:if="${page.getNumber() >= 3}">
+                <a th:href="@{/admin/users/page/__${page.getNumber()-2}__?search=__${search}__}"
+                   th:text="${page.getNumber()-2}"></a>
+            </li>
+
+            <li class="waves-effect" th:if="${page.getNumber() >= 2}">
+                <a th:href="@{/admin/users/page/__${page.getNumber()-1}__?search=__${search}__}"
+                   th:text="${page.getNumber()-1}"></a>
+            </li>
+
+            <li class="waves-effect" th:if="${page.getNumber() >= 1}">
+                <a th:href="@{/admin/users/page/__${page.getNumber()}__?search=__${search}__}"
+                   th:text="${page.getNumber()}"></a>
+            </li>
+
+
+            <li class="active teal">
+                <a th:text="${page.getNumber()+1}"></a>
+            </li>
+
+
+            <!-- the three numbers after the active element -->
+            <li class="waves-effect" th:if="${page.getNumber()+1 &lt;= page.getTotalPages()-1}">
+                <a th:href="@{/admin/users/page/__${page.getNumber()+2}__?search=__${search}__}"
+                   th:text="${page.getNumber()+2}"></a>
+            </li>
+
+            <li class="waves-effect" th:if="${page.getNumber()+2 &lt;= page.getTotalPages()-1}">
+                <a th:href="@{/admin/users/page/__${page.getNumber()+3}__?search=__${search}__}"
+                   th:text="${page.getNumber()+3}"></a>
+            </li>
+
+            <li class="waves-effect" th:if="${page.getNumber()+3 &lt;= page.getTotalPages()-1}">
+                <a th:href="@{/admin/users/page/__${page.getNumber()+4}__?search=__${search}__}"
+                   th:text="${page.getNumber()+4}"></a>
+            </li>
+
+
+            <!-- Only the 3 numbers before/after the active element are shown.
+                 After that we show "…" and then the final number.
+             -->
+            <li th:if="${page.getNumber()+4 &lt; page.getTotalPages()-1}">
+                <a>…</a>
+            </li>
+
+            <li class="waves-effect" th:if="${page.getNumber()+4 &lt;= page.getTotalPages()-1}">
+                <a th:href="@{/admin/users/page/__${page.getTotalPages()}__?search=__${search}__}"
+                   th:text="${page.getTotalPages()}"></a>
+            </li>
+
+
+            <!-- Hide the chevron if the last element is active -->
+            <li class="disabled" th:if="${page.isLast()}">
+                <a href="#">
+                    <i class="material-icons">chevron_right</i>
+                </a>
+            </li>
+
+            <li th:if="${!page.isLast()}">
+                <a th:href="@{/admin/users/page/__${page.getNumber()+2}__?search=__${search}__}">
+                    <i class="material-icons">chevron_right</i>
+                </a>
+            </li>
+        </ul>
+
+    </div>
+
+    <!-- Create user FAB -->
+    <div class="fixed-action-btn hide-on-med-and-up">
+        <a class="btn-floating btn-large amber modal-trigger" href="#create-user-modal">
+            <i class="large material-icons">add</i>
+        </a>
+    </div>
+
+    <!-- Create user modal -->
+    <div class="modal small" id="create-user-modal">
+        <div class="modal-content">
+            <form id="create-user-form" method="post" th:action="@{/admin/users/create}">
+                <div class="row">
+
+                    <div class="col s12">
+                        <h5 th:text="#{admin.users.create.form.header}"></h5>
+                    </div>
+
+                    <div class="col s12">
+                        <p>
+                            <input checked="checked" class="with-gap" id="student" name="type" type="radio"
+                                   value="Student"/>
+                            <label for="student" th:text="#{admin.users.create.form.type.student}"></label>
+
+                            <input class="with-gap" id="lecturer" name="type" type="radio" value="Lecturer"/>
+                            <label for="lecturer" th:text="#{admin.users.create.form.type.lecturer}"></label>
+                        </p>
+                    </div>
+
+                    <div class="input-field col s12">
+                        <input id="identificationNumber" name="identificationNumber" required="required"
+                               th:attr="data-msg-required=#{admin.users.create.form.identificationNumber.error}"
+                               type="text"/>
+                        <label for="identificationNumber"
+                               th:text="#{admin.users.create.form.identificationNumber}"></label>
+                    </div>
+
+                    <div class="input-field col s12">
+                        <input id="name" name="name" required="required"
+                               th:attr="data-msg-required=#{admin.users.create.form.name.error}"
+                               type="text"/>
+                        <label for="name" th:text="#{admin.users.create.form.name}"></label>
+                    </div>
+
+                    <div class="input-field col s12">
+                        <input id="email" name="email" required="required"
+                               th:attr="data-msg-required=#{admin.users.create.form.email.error}"
+                               type="email"/>
+                        <label for="email" th:text="#{admin.users.create.form.email}"></label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a class="modal-action waves-effect btn teal" href="#"
+               onclick="$('#create-user-form').submit()"
+               th:text="#{admin.users.create.form.create}"></a>
+            <a class="modal-action modal-close waves-effect btn-flat" href="#"
+               th:text="#{cancel}"></a>
+        </div>
+    </div>
+
+</main>
+
+<div layout:fragment="scripts">
+    <script type="application/javascript">
+        $("#create-user-form").validate({
+            errorElement: 'span',
+            validClass: '',
+            errorClass: 'red-text',
+        });
+
+
+
+
+
+
+    </script>
+</div>
+
+</body>
+</html>

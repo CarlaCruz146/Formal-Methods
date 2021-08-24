@@ -1,0 +1,1000 @@
+abstract sig Light{}
+
+--Modos em que uma luz pode estar
+one sig On extends Light{}
+one sig Off extends Light{}
+one sig Auto extends Light{}
+one sig OnFifty extends Light{} 
+
+--Manipulo
+abstract sig PitmanArmState{}
+
+--Estados do manípulo
+one sig PitmanArmNeutral extends PitmanArmState{}
+one sig PitmanArmForth extends PitmanArmState{}
+one sig PitmanArmBack extends PitmanArmState{}
+one sig PitmanArmUp extends PitmanArmState{}
+one sig PitmanArmDown extends PitmanArmState{}
+
+--Ignição
+abstract sig KeyState{}
+
+--Estados da ignição
+one sig NoKeyInserted extends KeyState{}
+one sig KeyInserted extends KeyState{}
+one sig KeyInIgnitionOnPosition extends KeyState{}
+
+--Brilho exterior
+abstract sig Brightness{}
+
+--Estados do brilho exterior
+one sig Dark extends Brightness{}
+one sig Clear extends Brightness{}
+
+--Volante
+abstract sig steeringWheelAngle{}
+
+--Estados do ângulo do volante
+one sig steeringWheelNeutral extends steeringWheelAngle{}
+one sig steeringWheelLess45 extends steeringWheelAngle{}
+one sig steeringWheel45OrMore extends steeringWheelAngle{}
+ 
+--Travão
+abstract sig brakePedalState{}
+
+--Estados do travão
+one sig brakePedalDesactive extends brakePedalState{}
+one sig brakePedalActive extends brakePedalState{}
+
+one sig Car{
+	var pitmanArm : PitmanArmState, -- Manípulo
+	var steeringWheel : steeringWheelAngle, --Volante
+	var brakePedal : brakePedalState, --Pedal
+	var ignition : KeyState, -- Ignição	
+	var exterior : Brightness, -- Brilho Exterior	
+
+	var blinkRight : Light, --Pisca direito
+	var blinkLeft : Light, --Pisca esquerdo
+	var corneringRight : Light, --Luz de viragem direita
+	var corneringLeft : Light, --Luz de viragem esquerda
+	var reverseLight : Light, -- Luz da marcha-atras
+	var brakeCenterLight : Light, -- Luz de travagem do centro
+	var brakeBackLight : Light, -- Luz de travagem de trás
+	var lowBeamLight : Light, -- Médios
+	var highBeamLight : Light, --Máximos
+	var positionLight : Light, --Posição das luzes
+}
+
+/********************* AÇÕES ********************/
+
+/******** Piscas *********/
+--Liga o pisca direito
+pred blinkRightOn{
+	--Pre
+	Car.blinkRight in Off
+	Car.corneringRight in Off
+	Car.pitmanArm in PitmanArmNeutral
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.blinkRight' in On
+	Car.corneringRight' in On
+	Car.pitmanArm' in PitmanArmUp
+	(Car.steeringWheel' in steeringWheelLess45 or Car.steeringWheel' in steeringWheel45OrMore)
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.corneringLeft' = Car.corneringLeft
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+	Car.positionLight' = Car.positionLight
+
+	Car.ignition' = Car.ignition	
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+}
+
+--Desliga o pisca direito manualmente
+pred blinkRightOffManually{
+	--Pre
+	Car.blinkRight in On
+	Car.corneringRight in On
+	Car.pitmanArm in PitmanArmUp
+	Car.steeringWheel in steeringWheelLess45
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.blinkRight' in Off
+	Car.corneringRight' in Off
+	Car.pitmanArm' in PitmanArmNeutral
+	Car.steeringWheel' in steeringWheelNeutral
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.corneringLeft' = Car.corneringLeft
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+	Car.positionLight' = Car.positionLight
+
+	Car.ignition' = Car.ignition	
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+}
+
+--Desliga o pisca direito automatimente
+pred blinkRightOffAutomatically{
+	--Pre
+	Car.blinkRight in On
+	Car.corneringRight in On
+	Car.pitmanArm in PitmanArmUp
+	Car.steeringWheel in steeringWheel45OrMore
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.blinkRight' in Off
+	Car.corneringRight' in Off
+	Car.pitmanArm' in PitmanArmNeutral
+	Car.steeringWheel' in steeringWheelNeutral
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.corneringLeft' = Car.corneringLeft
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+	Car.positionLight' = Car.positionLight
+
+	Car.ignition' = Car.ignition	
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+}
+
+--Liga o pisca esquerdo
+pred blinkLeftOn{
+	--Pre
+	Car.blinkLeft in Off
+	Car.corneringLeft in Off
+	Car.pitmanArm in PitmanArmNeutral
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.blinkLeft' in On
+	Car.corneringLeft' in On
+	Car.pitmanArm' in PitmanArmDown
+	(Car.steeringWheel' in steeringWheelLess45 or Car.steeringWheel' in steeringWheel45OrMore)
+
+	--Frame
+	Car.blinkRight' = Car.blinkRight 
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+	Car.positionLight' = Car.positionLight
+
+	Car.ignition' = Car.ignition	
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+}
+
+--Desliga o pisca esquerdo manualmente
+pred blinkLeftOffManually{
+	--Pre
+	Car.blinkLeft in On
+	Car.corneringLeft in On
+	Car.pitmanArm in PitmanArmDown
+	Car.steeringWheel in steeringWheelLess45
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.blinkLeft' in Off
+	Car.corneringLeft' in Off
+	Car.pitmanArm' in PitmanArmNeutral
+	Car.steeringWheel' in steeringWheelNeutral
+
+	--Frame
+	Car.blinkRight' = Car.blinkRight 
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+	Car.positionLight' = Car.positionLight
+
+	Car.ignition' = Car.ignition	
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+}
+
+--Desliga o pisca esquerdo automaticamente
+pred blinkLeftOffAutomatically{
+	--Pre
+	Car.blinkLeft in On
+	Car.corneringLeft in On
+	Car.pitmanArm in PitmanArmDown
+	Car.steeringWheel in steeringWheel45OrMore
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.blinkLeft' in Off
+	Car.corneringLeft' in Off
+	Car.pitmanArm' in PitmanArmNeutral
+	Car.steeringWheel' in steeringWheelNeutral
+
+	--Frame
+	Car.blinkRight' = Car.blinkRight 
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+	Car.positionLight' = Car.positionLight
+
+	Car.ignition' = Car.ignition	
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+}
+
+/******** Luzes de travagem *********/
+--Liga as luzes de travagem
+pred brakeLightsOn{
+	--Pre
+	Car.brakeCenterLight in Off
+	Car.brakeBackLight in Off
+	Car.brakePedal in brakePedalDesactive
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.brakeCenterLight' in On
+	Car.brakeBackLight' in On
+	Car.brakePedal' in brakePedalActive
+
+	--Frame
+	Car.blinkRight' = Car.blinkRight
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.corneringRight' = Car.corneringRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.reverseLight' = Car.reverseLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+	Car.positionLight' = Car.positionLight
+
+	Car.ignition' = Car.ignition
+	Car.exterior' = Car.exterior
+	Car.pitmanArm' = Car.pitmanArm
+	Car.steeringWheel' =  Car.steeringWheel
+}
+
+--Desliga as luzes de travagem
+pred brakeLightsOff{
+	--Pre
+	Car.brakeCenterLight in On
+	Car.brakeBackLight in On
+	Car.brakePedal in brakePedalActive
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.brakeCenterLight' in Off
+	Car.brakeBackLight' in Off
+	Car.brakePedal' in brakePedalDesactive
+
+	--Frame
+	Car.blinkRight' = Car.blinkRight
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.corneringRight' = Car.corneringRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.reverseLight' = Car.reverseLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+	Car.positionLight' = Car.positionLight
+
+	Car.ignition' = Car.ignition
+	Car.exterior' = Car.exterior
+	Car.pitmanArm' = Car.pitmanArm
+	Car.steeringWheel' =  Car.steeringWheel
+}
+
+/******** Luzes de marcha-atrás *********/
+--Liga a luz da marcha-atrás
+pred reverseLightOn{
+	--Pre
+	Car.reverseLight in Off
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.reverseLight' in On
+
+	--Frame
+	Car.blinkRight' = Car.blinkRight
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.corneringRight' = Car.corneringRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+	Car.positionLight' = Car.positionLight
+
+	Car.ignition' = Car.ignition
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+	Car.pitmanArm' = Car.pitmanArm
+	Car.steeringWheel' =  Car.steeringWheel
+}
+
+--Desliga a luz da marcha-atrás
+pred reverseLightOff{
+	--Pre
+	Car.reverseLight in On
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.reverseLight' in Off
+
+	--Frame
+	Car.blinkRight' = Car.blinkRight
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.corneringRight' = Car.corneringRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+	Car.positionLight' = Car.positionLight
+
+	Car.ignition' = Car.ignition
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+	Car.pitmanArm' = Car.pitmanArm
+	Car.steeringWheel' =  Car.steeringWheel
+}
+
+/******** Máximos *********/
+--Liga os máximos permanentemente
+pred highBeamOnP{
+	--Pre
+	Car.pitmanArm in PitmanArmNeutral
+	Car.highBeamLight in Off
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.pitmanArm' in PitmanArmBack
+	Car.lowBeamLight' in Off
+	Car.highBeamLight' in On
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.positionLight' = Car.positionLight
+
+	Car.ignition' = Car.ignition	
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+--Liga os máximos temporariamente
+pred highBeamOnT{
+	--Pre
+	Car.pitmanArm in PitmanArmNeutral
+	Car.highBeamLight in Off
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.pitmanArm' in PitmanArmForth
+	Car.lowBeamLight' in Off
+	Car.highBeamLight' in On
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.positionLight' = Car.positionLight
+
+	Car.ignition' = Car.ignition
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+--Desliga os máximos permanentes
+pred highBeamOffP{
+	--Pre
+	Car.pitmanArm in PitmanArmBack
+	Car.highBeamLight in On
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.pitmanArm' in PitmanArmNeutral
+	Car.highBeamLight' in Off
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.positionLight' = Car.positionLight
+	Car.lowBeamLight' = Car.lowBeamLight
+
+	Car.ignition' = Car.ignition
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+--Desliga os máximos temporários
+pred highBeamOffT{
+	--Pre
+	Car.pitmanArm in PitmanArmForth
+	Car.highBeamLight in On
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+
+	--Pos
+	Car.pitmanArm' in PitmanArmNeutral
+	Car.highBeamLight' in Off
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.positionLight' = Car.positionLight
+	Car.lowBeamLight' = Car.lowBeamLight
+
+	Car.ignition' = Car.ignition
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+/******** Médios *********/
+--Se a chave está inserida ou ligado e o botão das luzes está ligado, ativa os médios
+pred startCar_Light{
+	--Pre
+	(Car.ignition in KeyInserted or Car.ignition in KeyInIgnitionOnPosition)
+	Car.positionLight in On
+
+	--Pos
+	Car.lowBeamLight' in On
+
+	--Frame
+	Car.ignition' = Car.ignition
+	Car.pitmanArm' = Car.pitmanArm 
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.positionLight' = Car.positionLight
+	Car.exterior' = Car.exterior
+	Car.highBeamLight' = Car.highBeamLight
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+--Se o botão das luzes está ligado e o carro não está ligado, liga os médios a 50%
+pred key_Light{
+	--Pre
+	(Car.ignition in NoKeyInserted or Car.ignition in KeyInserted)
+	Car.positionLight in On
+
+	--Pos
+	Car.lowBeamLight' in OnFifty
+	Car.positionLight' in On 
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.highBeamLight' = Car.highBeamLight
+
+	Car.exterior' = Car.exterior
+	Car.ignition' = Car.ignition
+	Car.pitmanArm' = Car.pitmanArm 
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+--Desliga os médios caso este estejam ligados a 50% e o botão das luzes, quando o carro não está ligado
+pred key_LightOff{
+	--Pre
+	(Car.ignition in NoKeyInserted or Car.ignition in KeyInserted)
+	Car.lowBeamLight in OnFifty
+
+	--Pos
+	Car.positionLight' in Off
+	Car.lowBeamLight' in Off
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.highBeamLight' = Car.highBeamLight
+
+
+	Car.ignition' = Car.ignition
+	Car.pitmanArm' = Car.pitmanArm
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+--Se o botão das luzes está no auto e o carro não está ligado, desliga os médios
+pred key_LightAuto{
+	--Pre
+	(Car.ignition in NoKeyInserted or Car.ignition in KeyInserted)
+	Car.positionLight in Auto
+
+	--Pos
+	Car.lowBeamLight' in Off
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.positionLight' = Car.positionLight
+	Car.highBeamLight' = Car.highBeamLight
+
+	Car.ignition' = Car.ignition
+	Car.pitmanArm' = Car.pitmanArm 
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+--Desliga os médios caso o botão das luzes esteja no auto, a chave na ignição ou ligada e o brilho exterior claro
+pred lightWithBright{
+	--Pre
+	(Car.ignition in KeyInserted or Car.ignition in KeyInIgnitionOnPosition)
+	Car.positionLight in Auto
+	Car.exterior in Clear
+
+	--Pos
+	Car.lowBeamLight' in Off
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.positionLight' = Car.positionLight
+	Car.highBeamLight' = Car.highBeamLight
+
+	Car.ignition' = Car.ignition
+	Car.pitmanArm' = Car.pitmanArm
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+--Liga os médios caso o botão das luzes esteja no auto, a chave na ignição ou ligada e o brilho exterior escuro
+pred lightWithoutBright{
+	--Pre
+	(Car.ignition in KeyInIgnitionOnPosition or Car.ignition in KeyInserted)
+	Car.positionLight in Auto
+	Car.exterior in Dark
+
+	--Pos
+	Car.lowBeamLight' in On
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.positionLight' = Car.positionLight
+	Car.highBeamLight' = Car.highBeamLight
+
+	Car.ignition' = Car.ignition
+	Car.pitmanArm' = Car.pitmanArm 
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+/******** Botão das luzes *********/
+--Altera o botão das luzes para ligado
+pred posKeyOn{
+	--Pre
+	(Car.positionLight in Off or Car.positionLight in Auto)
+
+	--Pos
+	Car.positionLight' in On
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+	
+	Car.ignition' = Car.ignition
+	Car.pitmanArm' = Car.pitmanArm 
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+--Altera o botão das luzes para desligado
+pred posKeyOff{
+	--Pre
+	(Car.positionLight in On or Car.positionLight in Auto)
+
+	--Pos
+	Car.positionLight' in Off
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+
+	Car.ignition' = Car.ignition
+	Car.exterior' = Car.exterior
+	Car.pitmanArm' = Car.pitmanArm 
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+--Altera o botão das luzes para auto
+pred posKeyAuto{
+	--Pre
+	(Car.positionLight in Off or Car.positionLight in On)
+
+	--Pos
+	Car.positionLight' in Auto
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+
+	Car.pitmanArm' = Car.pitmanArm 
+	Car.ignition' = Car.ignition
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+/******** Brilho *********/
+--Altera o brilho exterior para claro
+pred brightClear{
+	--Pre
+	Car.exterior in Dark 
+
+	--Pos
+	Car.exterior' in Clear
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.positionLight' = Car.positionLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+
+	Car.pitmanArm' = Car.pitmanArm 
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+	Car.ignition' = 	Car.ignition
+}
+
+--Altera o brilho exterior para escuro
+pred brightDark{
+	--Pre
+	Car.exterior in Clear 
+
+	--Pos
+	Car.exterior' in Dark
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.positionLight' = Car.positionLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+
+	Car.pitmanArm' = Car.pitmanArm 
+	Car.brakePedal' = Car.brakePedal
+	Car.steeringWheel' = Car.steeringWheel
+	Car.ignition' = 	Car.ignition
+}
+
+/******** Ignição *********/
+--Colocar a chaves na ignição
+pred start{
+	--Pre
+	Car.ignition in NoKeyInserted 
+
+	--Pos
+	Car.ignition' in KeyInserted
+
+	--Frame
+	Car.blinkLeft' = Car.blinkLeft 
+	Car.blinkRight' = Car.blinkRight
+	Car.corneringLeft' = Car.corneringLeft
+	Car.corneringRight' = Car.corneringRight
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.positionLight' = Car.positionLight
+	Car.highBeamLight' = Car.highBeamLight
+	Car.lowBeamLight' = Car.lowBeamLight
+
+	Car.pitmanArm' = Car.pitmanArm 
+	Car.brakePedal' = Car.brakePedal
+	Car.exterior' = Car.exterior
+	Car.steeringWheel' = Car.steeringWheel
+}
+
+/******** Carro *********/
+--Desligar o carro
+pred off{
+	Car.exterior' = Car.exterior
+
+	Car.blinkRight' in Off
+	Car.blinkLeft' in Off
+	Car.corneringRight' in Off
+	Car.corneringLeft' in Off
+	Car.reverseLight' in Off
+	Car.brakeCenterLight' in Off
+	Car.brakeBackLight' in Off
+	Car.lowBeamLight' in Off
+	Car.highBeamLight' in Off
+	Car.positionLight' in Off
+	
+	Car.brakePedal' in brakePedalDesactive
+	Car.pitmanArm' in PitmanArmNeutral
+	Car.steeringWheel' in steeringWheelNeutral
+	Car.ignition' in NoKeyInserted
+}
+
+/******** Gerais *********/
+--Mantém o estado atual (Não faz nada)
+pred skip {
+	Car.blinkRight' = Car.blinkRight 
+	Car.blinkLeft' = Car.blinkLeft
+	Car.corneringRight' = Car.corneringRight 
+	Car.corneringLeft' = Car.corneringLeft
+	Car.reverseLight' = Car.reverseLight
+	Car.brakeCenterLight' = Car.brakeCenterLight
+	Car.brakeBackLight' = Car.brakeBackLight
+	Car.lowBeamLight' = Car.lowBeamLight
+	Car.highBeamLight' = Car.highBeamLight
+	Car.positionLight' = Car.positionLight
+
+	Car.ignition' = Car.ignition
+	Car.exterior' = Car.exterior
+	Car.brakePedal' = Car.brakePedal
+	Car.pitmanArm' = Car.pitmanArm
+	Car.steeringWheel' =  Car.steeringWheel
+}
+
+/********************* Factos ********************/
+
+--O estado inicial
+fact init{
+	Car.blinkRight in Off
+	Car.blinkLeft in Off
+	Car.corneringRight in Off
+	Car.corneringLeft in Off
+	Car.reverseLight in Off
+	Car.brakeCenterLight in Off
+	Car.brakeBackLight in Off
+	Car.lowBeamLight in Off
+	Car.highBeamLight in Off
+	Car.positionLight in Off
+	
+	Car.brakePedal in brakePedalDesactive
+	Car.pitmanArm in PitmanArmNeutral
+	Car.steeringWheel in steeringWheelNeutral
+	Car.exterior in Clear
+	Car.ignition in NoKeyInserted
+
+}
+
+--Sempre que o travão for ativo as luzes de travagem ligam
+fact brakePedalPress{
+	always Car.brakePedal in brakePedalActive implies brakeLightsOn
+}
+
+--As condições que a ignição garante
+fact ignitionF {
+	
+	--Se a ignição está ligada e as luzes também, ativam-se os médios
+	always ( Car.ignition in KeyInIgnitionOnPosition and Car.positionLight in On)
+		implies Car.lowBeamLight in On
+
+	--Se a chave está inserida e as luzes estão On, ativam-se os médios a 50%
+	always ( Car.ignition in KeyInserted and Car.positionLight in On)
+		implies Car.lowBeamLight in OnFifty
+
+	--Se a ignição está desligada e o condutor coloca as luzes em Auto
+	always (Car.ignition in KeyInserted and Car.positionLight in Auto)
+		implies Car.lowBeamLight in Off
+
+	--Se a ignição está ligada,as luzes em Auto e a claridade é baixa => Liga as luzes
+	always ( Car.ignition in KeyInIgnitionOnPosition and Car.positionLight in Auto and Car.exterior in Dark)
+		implies Car.lowBeamLight in On
+
+	--Se a ignição está ligada,as luzes em Auto e a claridade é alta => Desliga as luzes
+	always ( Car.ignition in KeyInIgnitionOnPosition and Car.positionLight in Auto and Car.exterior in Clear)
+		implies Car.lowBeamLight in Off
+}
+
+--As possíveis ações do sistema
+fact actions {
+	always (
+		highBeamOnP or
+		highBeamOnT or
+		highBeamOffP or
+		highBeamOffT or
+		blinkRightOn or
+		blinkRightOffManually or
+		blinkRightOffAutomatically or
+		blinkLeftOn or 
+		blinkLeftOffManually or
+		blinkLeftOffAutomatically or
+		brakeLightsOn or
+		brakeLightsOff or
+		reverseLightOn or 
+		reverseLightOff or
+		posKeyAuto or
+		posKeyOn or
+		posKeyOff or
+		brightDark or
+		brightClear or
+		startCar_Light or
+		key_Light or
+		key_LightAuto or
+		lightWithBright or
+		lightWithoutBright or
+		start or
+		off or
+		key_LightOff or
+		skip
+	)
+}
+
+--As luzes que não têm o modo auto
+fact noAuto{
+	always Car.blinkRight not in Auto
+	always Car.blinkLeft not in Auto
+	always Car.corneringRight not in Auto
+	always Car.corneringLeft not in Auto
+	always Car.reverseLight not in Auto
+	always Car.brakeCenterLight not in Auto
+	always Car.brakeBackLight not in Auto
+	always Car.lowBeamLight not in Auto
+	always Car.highBeamLight not in Auto
+}
+
+--As luzes que não têm o modo 50%
+fact noOnFifty{
+	always Car.blinkRight not in OnFifty
+	always Car.blinkLeft not in OnFifty
+	always Car.corneringRight not in OnFifty
+	always Car.corneringLeft not in OnFifty
+	always Car.reverseLight not in OnFifty
+	always Car.brakeCenterLight not in OnFifty
+	always Car.brakeBackLight not in OnFifty
+	always Car.highBeamLight not in OnFifty
+	always Car.positionLight not in OnFifty
+}
+
+/********************** VERIFICAÇÕES **********************/
+
+assert checkBlinkLeftOn{
+	always (Car.pitmanArm in PitmanArmDown implies (Car.blinkLeft in On and Car.corneringLeft in On))
+}
+
+assert checkBlinkRightOn{
+	always (Car.pitmanArm in PitmanArmUp implies (Car.blinkRight in On and Car.corneringRight in On))
+}
+
+assert checkBlinksOff{
+	always (Car.pitmanArm in PitmanArmNeutral implies (Car.blinkRight in Off and Car.corneringRight in Off and Car.blinkLeft in Off and Car.corneringLeft in Off))
+}
+
+assert checkBrakePedalOn{
+	always (Car.brakePedal in brakePedalActive implies (Car.brakeCenterLight in On and Car.brakeBackLight in On))
+}
+
+assert checkBrakePedalOff{
+	always (Car.brakePedal in brakePedalDesactive implies (Car.brakeCenterLight in Off and Car.brakeBackLight in Off))
+}
+
+assert checksteeringWheel{
+	always ((Car.pitmanArm in PitmanArmDown or Car.pitmanArm in PitmanArmUp) implies (Car.steeringWheel in steeringWheelLess45 or Car.steeringWheel in steeringWheel45OrMore))
+}
+
+assert checkHighBeamOn{
+	always ((Car.pitmanArm in PitmanArmBack or Car.pitmanArm in PitmanArmForth) implies (Car.highBeamLight in On))
+}
+
+assert checkHighBeamOff{
+	always ((Car.pitmanArm in PitmanArmNeutral) implies (Car.highBeamLight in Off))
+}
+
+
+--check checkBlinkLeftOn
+--check checkBlinkRightOn
+--check checkBlinksOff
+--check checkBrakePedalOn
+--check checkBrakePedalOff
+--check checksteeringWheel
+--check checkHighBeamOn
+--check checkHighBeamOff
+
+-- Correr o programa
+run{} for 10

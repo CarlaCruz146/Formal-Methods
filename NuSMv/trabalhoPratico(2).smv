@@ -1,0 +1,142 @@
+MODULE main
+
+VAR
+    -- Estados do pisca direito
+    blinkRight : {on, off};
+    -- Estados do pisca esquerdo
+    blinkLeft : {on, off};
+    -- Estados da luz da marcha-atras
+    reverseLight : {on, off};
+    --Estados dos mínimos
+    highBeamLight : {on, off};
+    -- Estados da luz de travagem
+    brakeLight : {on, off};
+    -- Estados do pedal de travagem
+    brakePedal : {active, desactive};
+    -- Estados da ignição
+    ignition : {noKey, keyInserted, positionOn};
+    -- Estados do pitmanArm
+    pitmanArm : {neutral, up7, up5, down7, down5, back};
+    --Estados da mudança
+    gear : {neutral, backward};
+    --Estados do volante
+    steeringWheelAngle : {steeringWheelNeutral, steeringWheelLess45, steeringWheel45OrMore};
+    --Tempo da Direita
+    timeR: 0..3;
+    --Tempo da Esquerda
+    timeL: 0..3;
+
+--Estado inicial
+INIT
+    pitmanArm = neutral &
+    blinkRight = off &
+    blinkLeft = off &
+    brakePedal = desactive &
+    brakeLight = off &
+    reverseLight = off &
+    ignition = keyInserted &
+    gear = neutral &
+    highBeamLight = off &
+    steeringWheelAngle = steeringWheelNeutral &
+    timeL = 0 &
+    timeR = 0;
+
+ASSIGN
+
+--Comportamento do tempo com o pisca à direita. Se o pitmanArm tiver no estado up5, o tempo começa a 3 e mantem ligado até terminar.
+--Mudando de estado o pitmanArm, dá reset do tempo.
+--Garante-se ainda que o tempo nunca é negativo.
+--O tempo será sempre zero não satisfazendo as condições anteriormente indicadas.
+    next(timeR) := case
+                      pitmanArm = up5  : 3;
+                      next(pitmanArm) != up5 & next(pitmanArm) != neutral : 0;
+                      timeR > 0 : timeR -1;
+                      TRUE : 0;
+                  esac;
+
+--Comportamento do tempo com o pisca à esquerda. Se o pitmanArm tiver no estado down5, o tempo começa a 3 e mantem ligado até terminar.
+--Mudando de estado o pitmanArm, dá reset do tempo.
+--Garante-se ainda que o tempo nunca é negativo.
+--O tempo será sempre zero não satisfazendo as condições anteriormente indicadas.
+     next(timeL) := case
+                       pitmanArm = down5  : 3;
+                       next(pitmanArm) != down5 & next(pitmanArm) != neutral : 0;
+                       timeL > 0 : timeL -1;
+                       TRUE : 0;
+                   esac;
+
+
+--Caos os piscas estejam desligados e os máximos, o pitman arm pode tomar quaiquer valores.
+--Volta a neutro depois de ligar a luz pretendida
+    next(pitmanArm) := case
+                           blinkRight = off & blinkLeft = off & pitmanArm = neutral & highBeamLight = off : {up5, up7, down5, down7, back};
+                           TRUE : neutral;
+                       esac;
+
+--O pisca direito só se pode ligar se o pisca esquerdo tiver desligado, se a chave estiver inserida e se o pitman arm estiver no estado up.
+--Se o tempo do pisca direito for superior a zero, mantem a luz do pisca ligado.
+--Assim que o tempo é zero, este pisca é desligado.
+    next(blinkRight) := case
+                            (next(ignition) = keyInserted | next(ignition) = positionOn) & (next(pitmanArm) = up5 | next(pitmanArm) = up7) | timeR > 0  & blinkLeft = off : on;
+                            (next(ignition) = keyInserted | next(ignition) = positionOn) & blinkRight = on & pitmanArm = up5 & timeR = 0 & blinkLeft = off : off;
+                            (next(ignition) = keyInserted | next(ignition) = positionOn) & blinkRight = on & pitmanArm = up7 & timeR = 0 & blinkLeft = off : off;
+                            TRUE : blinkRight;
+                        esac;
+
+
+--O pisca esquerdo só se pode ligar se o pisca direito tiver desligado, se a chave estiver inserida e se o pitman arm estiver no estado down.
+--Se o tempo do pisca direito for superior a zero, mantem a luz do pisca ligado.
+--Assim que o tempo é zero, este pisca é desligado.
+    next(blinkLeft) := case
+                            (next(ignition) = keyInserted | next(ignition) = positionOn) & (next(pitmanArm) = down5 | next(pitmanArm) = down7) | timeL > 0 & blinkRight = off : on;
+                            (next(ignition) = keyInserted | next(ignition) = positionOn) & blinkLeft = on & pitmanArm = down5 & timeL = 0 & blinkRight = off  : off;
+                            (next(ignition) = keyInserted | next(ignition) = positionOn) & blinkLeft = on & pitmanArm = down7 & timeL = 0 & blinkRight = off  : off;
+                            TRUE : blinkLeft;
+                       esac;
+
+--A luz do travagem só se pode ligar se a chave estiver inserida e se o pedal de travagem for ativo, caso contrario é desligada
+    next(brakeLight) := case
+                            (next(ignition) = keyInserted | next(ignition) = positionOn)  & next(brakePedal) = active : on;
+                            TRUE : off;
+                        esac;
+
+
+--A luz de marcha atras só se pode ligar se a chave estiver inserida e se a mudança estiver no estado backward, caso contrario é desligada
+    next(reverseLight) := case
+                              (next(ignition) = keyInserted | next(ignition) = positionOn) & next(gear) = backward : on;
+                              next(ignition) = noKey | next(gear) = neutral : off;
+                              TRUE : reverseLight;
+                          esac;
+
+--Os máximos só se podem ligar se a chave estiver inserida e se o pitman arm estiver no estado back, caso contrario é desligada
+    next(highBeamLight) := case
+                               (next(ignition) = keyInserted | next(ignition) = positionOn) & next(pitmanArm) = back : on;
+                               TRUE : off;
+                           esac;
+
+
+LTLSPEC G (pitmanArm = back & ignition != noKey -> highBeamLight = on)
+
+LTLSPEC F (pitmanArm = up5 -> blinkRight = on)
+
+LTLSPEC F (pitmanArm = up7 -> blinkRight = on)
+
+LTLSPEC F (pitmanArm = down5 -> blinkLeft = on)
+
+LTLSPEC F (pitmanArm = down7 -> blinkLeft = on)
+
+LTLSPEC F (pitmanArm = neutral -> blinkLeft = off)
+
+LTLSPEC F (pitmanArm = neutral -> blinkRight = off)
+
+LTLSPEC G (pitmanArm = neutral -> highBeamLight = off)
+
+LTLSPEC G (blinkRight = on -> blinkLeft = off)
+
+LTLSPEC G (blinkLeft = on -> blinkRight = off)
+
+LTLSPEC G (brakeLight = active -> brakePedal = on)
+
+LTLSPEC G (brakeLight = desactive -> brakePedal = off)
+
+LTLSPEC G (ignition = noKey -> reverseLight = off)

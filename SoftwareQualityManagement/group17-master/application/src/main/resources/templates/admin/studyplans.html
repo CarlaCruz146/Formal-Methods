@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html layout:decorator="admin/index"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<main layout:fragment="main">
+
+    <div class="container">
+
+        <!-- Header with create button -->
+        <div class="row">
+            <div class="col s12">
+                <h1 th:text="#{admin.nav.studyplans}"></h1>
+            </div>
+
+            <div class="col s12">
+                <a class="right amber btn hide-on-small-only modal-trigger" href="#create-studyplan-modal"
+                   th:text="#{admin.studyplans.create.header}"></a>
+            </div>
+        </div>
+
+        <!-- List of study plans -->
+        <div>
+
+            <ul class="collection z-depth-1">
+
+                <li class="collection-item" th:if="${#lists.isEmpty(studyPlans)}"
+                    th:text="#{admin.studyplan.notfound}"></li>
+
+                <li class="collection-item" th:each="studyPlan : ${studyPlans}">
+                    <div>
+                        <div class="title">
+                            <a class="teal-text" data-th-href="@{/admin/studyplans/(id=${studyPlan.id})}" href="#"
+                               th:text="${studyPlan.name}"></a>
+                            <span class="secondary-content" style="margin-left:10px;"
+                                  th:if="${studyPlan.enabled} == false"><i
+                                    class="material-icons">lock_outline</i></span>
+                            <a class="secondary-content tooltipped modal-trigger" href="#"
+                               style="margin-left:10px;" th:attr="data-tooltip=#{admin.studyplan.disable}"
+                               th:href="'#disable-confirm-' + ${studyPlan.id}"
+                               th:if="${studyPlan.enabled} == true"><i class="material-icons">lock_open</i></a>
+                            <a class="secondary-content tooltipped"
+                               data-th-href="@{/admin/studyplans/(id=${studyPlan.id})}"
+                               href="#" th:attr="data-tooltip=#{admin.studyplan.edit}"><i
+                                    class="material-icons">edit</i></a>
+                        </div>
+                    </div>
+
+                    <!-- Disable confirmation modal -->
+                    <div class="modal small" th:id="'disable-confirm-' + ${studyPlan.id}">
+                        <div class="modal-content">
+                            <h4 th:text="#{admin.studyplan.disable.modal.header}"></h4>
+                            <p th:text="#{admin.studyplan.disable.modal.content(${studyPlan.name})}"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <form method="post"
+                                  th:action="@{/admin/studyplans/disable/(id=${studyPlan.id})}"
+                                  th:id="'disableSp-' + ${studyPlan.id}">
+                                <a class="modal-action modal-close btn"
+                                   th:onclick="'$(\'#disableSp-' + ${studyPlan.id} + '\').submit()'"
+                                   th:text="#{disable}"></a>
+                                <a class="modal-action modal-close waves-effect btn-flat" th:text="#{cancel}"></a>
+                            </form>
+                        </div>
+                    </div>
+
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Create study plan FAB -->
+    <div class="fixed-action-btn hide-on-med-and-up">
+        <a class="btn-floating btn-large amber modal-trigger" href="#create-studyplan-modal">
+            <i class="large material-icons">add</i>
+        </a>
+    </div>
+
+    <!-- Create study plan modal -->
+    <div class="modal small" id="create-studyplan-modal">
+        <div class="modal-content">
+            <form id="create-studyplan-form" method="post"
+                  th:action="@{/admin/studyplans/create}">
+                <div class="row">
+
+                    <div class="col s12">
+                        <h5 th:text="#{admin.studyplans.create.form.header}"></h5>
+                    </div>
+
+                    <div class="input-field col s12">
+                        <input id="name" name="name" required="required"
+                               th:attr="data-msg-required=#{admin.studyplans.create.form.name.error}"
+                               type="text"/>
+                        <label for="name" th:text="#{admin.studyplans.create.form.name}"></label>
+                    </div>
+
+                    <div class="input-field col s12">
+                        <input id="mandatory" min="1" name="mandatory" required="required"
+                               th:attr="data-msg-required=#{admin.studyplans.create.form.mandatory.error}"
+                               type="number"/>
+                        <label for="mandatory" th:text="#{admin.studyplans.create.form.mandatory}"></label>
+                    </div>
+
+                    <div class="input-field col s12">
+                        <input id="optional" min="1" name="optional" required="required"
+                               th:attr="data-msg-required=#{admin.studyplans.create.form.optional.error}"
+                               type="number"/>
+                        <label for="mandatory" th:text="#{admin.studyplans.create.form.optional}"></label>
+                    </div>
+
+                    <div class="input-field col s12">
+                        <input id="freeChoice" min="1" name="freeChoice" required="required"
+                               th:attr="data-msg-required=#{admin.studyplans.create.form.free.error}"
+                               type="number"/>
+                        <label for="freeCHoice" th:text="#{admin.studyplans.create.form.free}"></label>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a class="modal-action waves-effect btn teal" href="#"
+               onclick="$('#create-studyplan-form').submit()"
+               th:text="#{create}"></a>
+            <a class="modal-action modal-close waves-effect btn-flat" href="#"
+               th:text="#{cancel}"></a>
+        </div>
+    </div>
+
+</main>
+
+<div layout:fragment="scripts">
+    <script type="application/javascript">
+        $("#create-studyplan-form").validate({
+            errorElement: 'span',
+            validClass: '',
+            errorClass: 'red-text',
+        });
+
+
+
+
+
+
+    </script>
+</div>
+
+</body>
+</html>

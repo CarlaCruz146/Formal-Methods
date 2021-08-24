@@ -1,0 +1,172 @@
+
+
+module Bintree_insert
+
+  use  int.Int
+  use  list.List
+  use  list.Append
+  use  list.Permut
+  use  list.Length
+  use  list.SortedInt
+  use  list.NumOcc
+  use  list.Mem
+
+
+
+
+  type tree 'a = Empty | Node (tree 'a) 'a (tree 'a)
+
+  let rec function size (t: tree 'a) : int =
+  match t with
+  |  Empty -> 0
+  |  Node l _ r -> 1 + (size l) + (size r)
+  end
+
+  predicate memt (t : tree int) (k : int) =
+  match t with
+  | Empty -> false
+  | Node t1 x t2 -> (k = x) \/ memt t1 k \/ memt t2 k
+  end
+
+
+  predicate leq_tree (x : int) (t : tree int) =
+    forall k : int. memt t k -> k <= x
+
+  predicate geq_tree (x : int) (t : tree int) =
+    forall k : int. memt t k -> x <= k
+
+
+  predicate sortedBT (t : tree int) =
+  match t with
+  | Empty -> true
+  | Node t1 x t2 -> sortedBT t1 /\ sortedBT t2 /\
+                    leq_tree x t1 /\ geq_tree x t2
+  end
+
+  (* let const t1 = Nil *)
+
+  function num_occ_tree (x: 'a) (t: tree 'a) : int =
+  match t with
+  | Empty -> 0
+  | Node t1 y t2 -> (if x = y then 1 else 0) + num_occ_tree x t1 + num_occ_tree x t2
+  end
+
+
+
+   let rec add (t : tree int) (v : int) : tree int =
+     requires { sortedBT t }
+     ensures  { sortedBT result }
+     ensures  { size result = size t + 1 }
+     ensures  { forall x : int. memt result x <-> (memt t x \/ x = v) }
+     ensures  { forall x : int. num_occ_tree x result =
+                                if x = v then 1 + num_occ_tree x t else num_occ_tree x t }
+     variant { t }
+     match t with
+      | Empty -> Node (Empty) v (Empty)
+      | Node t1 x t2 ->
+        if v <= x then Node (add t1 v) x t2 else Node t1 x (add t2 v)
+     end
+
+
+(*Exercicio 2*)
+
+(*1º algoritmo*)
+
+   (* converte uma lista numa árvore ordenada*)
+   let rec function mkTree (l: list int) : tree int =
+   ensures { sortedBT result }
+   ensures {size result = length l}
+   ensures {forall x : int. mem x l -> memt result x}
+   ensures {forall x : int. num_occ_tree x result = num_occ x l }
+   variant { l }
+   match l with
+      | Nil -> Empty
+      | Cons h t -> add (mkTree t) h
+   end
+
+   (*converte uma árvore ordenada numa lista ordenada*)
+   let rec function inorder (t: tree int) : list int
+      requires { sortedBT t }
+      ensures {size t = length result}
+      ensures {forall x : int. memt t x -> mem x result}
+      ensures {forall x : int. num_occ_tree x t = num_occ x result }
+      variant { t }
+      =
+      match t with
+          | Empty -> Nil
+          | Node l x r -> inorder l ++ Cons x Nil ++ inorder r
+   end
+
+   let function treesort  (l:list int) : list int
+      ensures { sorted result }
+      ensures { permut result l }
+   =
+   inorder (mkTree l)
+  
+
+(*2º algoritmo*)
+(*
+
+let rec function qtreesort1  (l:list int) : list int
+      ensures { sorted result }
+      ensures { permut result l }
+  =
+  match l with
+  | Nil -> Nil
+  | Cons h t -> let (l1, l2) = partition h t in
+                (qtreesort l1)++Cons h (qtreesort l2)
+  end  *)
+  
+  predicate menor (x : int) (l : list int) =
+  match l with
+    | Nil -> true
+    | Cons h t -> h <= x /\ menor x t
+  end
+
+  predicate maior (x : int) (l : list int) =
+  match l with
+    | Nil -> true
+    | Cons h t -> h > x /\ maior x t
+  end
+
+  let rec function left_tree (h:int) (t:list int) : (list int) =
+  ensures { menor h result }
+  match t with
+    | Nil -> Nil
+    | Cons p t2 -> 
+      if p <= h then Cons p (left_tree h t2) else left_tree h t2
+  end
+
+
+  let rec function right_tree (h:int) (t:list int) : (list int) =
+  ensures { maior h result }
+  match t with
+    | Nil -> Nil
+    | Cons h2 t2 -> 
+      if h2 > h then Cons h2 (right_tree h t2) else right_tree h t2
+  end 
+
+
+  let function partition (h:int) (t:list int) : (list int, list int) =
+    (left_tree h t, right_tree h t)
+
+  let rec function mkPartTree (l:list int) : tree int
+  ensures { sortedBT result } 
+  variant {l}
+  =
+  match l with
+  | Nil -> Empty
+  | Cons h t -> let (l1, l2) = partition h t in
+                Node (mkPartTree l1) h (mkPartTree l2)
+           
+  end
+
+  let function qtreesort  (l:list int) : list int
+      ensures { sorted result }
+      ensures { permut result l }
+  =
+  inorder (mkPartTree l)
+
+
+  
+end

@@ -1,0 +1,48 @@
+stages:
+  - build
+  - test
+  - deploy
+
+#image: ubuntu:latest
+image: maven:3-jdk-11
+
+build_npm:
+  stage: build
+  image: node:12-alpine
+  script:
+    - cd application/src/main/resources/static
+    - npm install
+    # - ./node_modules/.bin/webpack
+
+maven_build:
+  stage: build
+  #image: maven:3-jdk-11
+  script: mvn install -B
+
+test_a:
+  stage: test
+  script:
+    - mvn clean test
+  artifacts:
+    paths:
+      - domain/target/site/jacoco
+      - backend/target/site/jacoco
+
+sonarqube-check:
+  # image: maven:3.6.3-jdk-11
+  image: sonarqube:latest
+  script:
+    - mvn verify sonar:sonar -Dsonar.qualitygate.wait=true
+  allow_failure: true
+
+pages:
+  stage: deploy
+  dependencies:
+    - test_a
+  script:
+    - mkdir public
+    #- mv application/target/site/jacoco/index.html public/index_application.html
+    #- mv backend/target/site/jacoco/index.html public/index_backend.html
+    #- mv domain/target/site/jacoco/index.html public/index_domain.html
+    - cat domain/target/site/jacoco/index.html
+    - cat backend/target/site/jacoco/index.html

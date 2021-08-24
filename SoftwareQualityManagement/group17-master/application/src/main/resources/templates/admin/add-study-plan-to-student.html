@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html layout:decorator="admin/index"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<main layout:fragment="main">
+
+    <div class="container">
+        <h1 th:text="#{admin.users.student.addtostudyplan}"></h1>
+
+        <div>
+            <h4 th:text="#{admin.studyplan.add.student.header} +': '+ ${user.getName()}"></h4>
+        </div>
+
+        <div>
+
+            <div
+                    class="section-separator"
+                    th:if="${#lists.isEmpty(studyPlans)}"
+                    th:text="#{admin.studyplan.notfound}"
+            ></div>
+
+            <ul class="collection z-depth-1" th:unless="${#lists.isEmpty(studyPlans)}">
+
+                <li class="collection-item" th:each="studyPlan : ${studyPlans}">
+                    <div>
+                        <div class="title">
+                            <a
+                                    class="secondary-content modal-trigger"
+                                    th:href="'#register-confirm-' + ${studyPlan.id}"
+                                    th:text="#{admin.studyplan.add.student(${user.getName()})}"
+                            ></a>
+
+                            <div th:text="${studyPlan.name}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Register to study plan confirmation -->
+                    <div class="modal small" th:id="'register-confirm-' + ${studyPlan.id}">
+                        <div class="modal-content">
+                            <h4 th:text="#{admin.user.registerToStudyPlan.modal.header}"></h4>
+                            <p th:text="#{admin.user.registerToStudyPlan.modal.content(${user.getName()}, ${studyPlan.name})}"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <form method="post"
+                                  th:action="@{/admin/studyplans/studentAnmelden/(studentId=${user.id},studyPlanId=${studyPlan.id})}"
+                                  th:id="'addStudent-' +  ${studyPlan.id}">
+                                <a class="modal-action modal-close btn"
+                                   th:onclick="'$(\'#addStudent-' + ${studyPlan.id} + '\').submit()'"
+                                   th:text="#{register}"></a>
+                                <a class="modal-action modal-close waves-effect btn-flat" th:text="#{cancel}"></a>
+                            </form>
+
+                        </div>
+                    </div>
+
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+
+// Number of adventurers
+const int NAdv = 4;
+
+typedef int[1,NAdv] adv;
+
+// Delays for each adventurer to cross the bridge
+const int delays[NAdv] = {1,2,5,10};
+
+chan take[NAdv+1], release[NAdv+1], join;
+
+// Flashlight position
+int[0,1] pos;
+
+// People on the bridge
+int[0,2] potb;     
+
+// Main clock
+clock time;</declaration>
+	<template>
+		<name x="5" y="5">Adventurer</name>
+		<parameter>const adv id</parameter>
+		<declaration>// Place local declarations here.
+clock c;
+
+// Adventurer's delay to cross the bridge
+int delay = delays[id-1];
+
+// Is the adventurer holding the flashlight
+bool holdingFlashlight = false;</declaration>
+		<location id="id0" x="-68" y="-204">
+			<name x="-127" y="-238">crossingForward</name>
+		</location>
+		<location id="id1" x="204" y="-34">
+			<name x="221" y="-34">finish</name>
+		</location>
+		<location id="id2" x="-340" y="-34">
+			<name x="-382" y="-34">start</name>
+		</location>
+		<location id="id3" x="-68" y="136">
+			<name x="-102" y="153">crossingBack</name>
+		</location>
+		<location id="id4" x="-340" y="-204">
+		</location>
+		<location id="id5" x="204" y="136">
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="51" y="136">join ?</label>
+			<nail x="119" y="153"/>
+			<nail x="17" y="153"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id3"/>
+			<nail x="119" y="119"/>
+			<nail x="17" y="119"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id5"/>
+			<label kind="guard" x="212" y="17">pos == 1</label>
+			<label kind="synchronisation" x="212" y="34">take[id] !</label>
+			<label kind="assignment" x="212" y="51">c = 0, potb++,
+holdingFlashlight = true</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-221" y="-204">join ?</label>
+			<nail x="-255" y="-187"/>
+			<nail x="-153" y="-187"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id0"/>
+			<nail x="-255" y="-221"/>
+			<nail x="-153" y="-221"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-399" y="-153">pos == 0</label>
+			<label kind="synchronisation" x="-399" y="-136">take[id] !</label>
+			<label kind="assignment" x="-493" y="-119">c = 0, potb++,
+holdingFlashlight = true</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id3"/>
+			<label kind="guard" x="8" y="-9">pos == 1</label>
+			<label kind="synchronisation" x="8" y="8">join !</label>
+			<label kind="assignment" x="8" y="25">c = 0, potb++</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-212" y="-8">c &gt;= delay &amp;&amp;
+!holdingFlashlight</label>
+			<label kind="assignment" x="-212" y="25">potb--</label>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-17" y="-119">c &gt;= delay &amp;&amp;
+!holdingFlashlight</label>
+			<label kind="assignment" x="-17" y="-85">potb--</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-212" y="-119">pos == 0</label>
+			<label kind="synchronisation" x="-212" y="-102">join !</label>
+			<label kind="assignment" x="-212" y="-85">c = 0, potb++</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-306" y="102">c &gt;= delay &amp;&amp; potb &lt; 2</label>
+			<label kind="synchronisation" x="-306" y="119">release[id] !</label>
+			<label kind="assignment" x="-306" y="136">potb--,
+holdingFlashlight = false</label>
+			<nail x="-340" y="136"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="42" y="-238">c &gt;= delay &amp;&amp; potb &lt; 2</label>
+			<label kind="synchronisation" x="42" y="-221">release[id] !</label>
+			<label kind="assignment" x="42" y="-204">potb--,
+holdingFlashlight = false</label>
+			<nail x="204" y="-204"/>
+		</transition>
+	</template>
+	<template>
+		<name>Flashlight</name>
+		<declaration>int adv_id = 0;</declaration>
+		<location id="id6" x="136" y="0">
+			<name x="153" y="8">occupied</name>
+		</location>
+		<location id="id7" x="-136" y="0">
+			<name x="-170" y="8">free</name>
+		</location>
+		<init ref="id7"/>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-51" y="51">release[adv_id] ?</label>
+			<label kind="assignment" x="-42" y="68">pos = 1 - pos</label>
+			<nail x="136" y="68"/>
+			<nail x="-136" y="68"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="select" x="-25" y="-102">id : adv</label>
+			<label kind="synchronisation" x="-25" y="-85">take[id] ?</label>
+			<label kind="assignment" x="-34" y="-68">adv_id = id</label>
+			<nail x="-136" y="-68"/>
+			<nail x="136" y="-68"/>
+		</transition>
+	</template>
+	<system>// List one or more processes to be composed into a system.
+system Adventurer, Flashlight;</system>
+	<queries>
+		<query>
+			<formula>A[] not deadlock</formula>
+			<comment>Não haver deadlock no sistema</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; forall(i:int[1,4]) Adventurer(i).finish</formula>
+			<comment>É possível todos os aventureiros chegarem sempre ao fim</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; forall(i:int[1,4]) Adventurer(i).finish and time == 17</formula>
+			<comment>É possível todos atravessarem a ponte em apenas 17 minutos</comment>
+		</query>
+		<query>
+			<formula>A[] not (forall(i:int[1,4]) Adventurer(i).finish and time &lt; 17)</formula>
+			<comment>É impossível todos atravessarem a ponte em menos de 17 minutos!</comment>
+		</query>
+		<query>
+			<formula>A[] forall(i:int[1,4]) forall(j:int[1,4])
+Adventurer(i).holdingFlashlight &amp;&amp; Adventurer(j).holdingFlashlight imply i == j</formula>
+			<comment>Propriedade da exclusão mútua sobre a lanterna</comment>
+		</query>
+		<query>
+			<formula>((Adventurer(3).start and Adventurer(4).finish) or (Adventurer(3).finish and Adventurer(4).start)) --&gt; not (forall(i:int[1,4]) Adventurer(i).finish and time == 17)</formula>
+			<comment>Não é possível as pessoas mais lentas atravessarem a ponte separadamente e todos chegarem ao outro lado em 17 minutos</comment>
+		</query>
+		<query>
+			<formula>A[] not forall(i:int[1,4]) forall(j:int[1,4]) 
+(Adventurer(i).crossingForward and Adventurer(j).crossingBack) </formula>
+			<comment>Ser impossível uma pessoa atravessar em frente e outra no sentido contrário, ao mesmo tempo</comment>
+		</query>
+		<query>
+			<formula>A[] forall(i:int[1,4]) Adventurer(i).crossingForward imply
+	(Adventurer(i).holdingFlashlight or
+	(exists(j:int[1,4]) Adventurer(j).crossingForward and Adventurer(j).holdingFlashlight))</formula>
+			<comment>Quem atravessa a ponte tem de ter a lanterna ou se não a tiver, quem vá consigo tem de a ter (sentido do start pro finish)</comment>
+		</query>
+		<query>
+			<formula>A[] forall(i:int[1,4]) Adventurer(i).crossingBack imply
+	(Adventurer(i).holdingFlashlight or
+	(exists(j:int[1,4]) Adventurer(j).crossingBack and Adventurer(j).holdingFlashlight))</formula>
+			<comment>Quem atravessa a ponte tem de ter a lanterna ou se não a tiver, quem vá consigo tem de a ter (sentido do finish pro start)</comment>
+		</query>
+	</queries>
+</nta>

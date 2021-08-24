@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html
+        layout:decorator="layout/default"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        xmlns:th="http://www.thymeleaf.org"
+>
+<body>
+
+<title layout:fragment="content"></title>
+
+<main class="error-content" layout:fragment="content">
+
+    <div class="error-wrapper">
+
+        <h2 class="error-small" th:text="#{error.internal}"></h2>
+
+        <p th:if="${userMessage}" th:text="${userMessage}"></p>
+
+        <p>
+            <a href="/" th:text="#{error.back}"></a>
+        </p>
+    </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html layout:decorator="student/index"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<main layout:fragment="main">
+
+    <div class="container">
+
+        <h1 th:text="#{student.nav.studyplans}"></h1>
+
+        <div>
+            <ul class="collection z-depth-1">
+
+                <li class="collection-item" th:if="${#lists.isEmpty(studyPlans)}"
+                    th:text="#{student.studyplan.notfound}"></li>
+
+                <li class="collection-item" th:each="studyPlan : ${studyPlans}">
+                    <div>
+                        <div class="title">
+                            <a class="teal-text" data-th-href="@{/student/my-studyplans/(id=${studyPlan.id})}" href="#"
+                               th:text="${studyPlan.name}"></a>
+                            <span class="secondary-content" th:if="${studyPlan.enabled}"><i
+                                    class="material-icons tooltipped"
+                                    th:attr="data-tooltip=#{student.studyplan.enabled}">lock_open</i></span>
+                            <span class="secondary-content" th:if="${not studyPlan.enabled}"><i
+                                    class="material-icons tooltipped"
+                                    th:attr="data-tooltip=#{student.studyplan.disabled}">lock_outline</i></span>
+                        </div>
+                    </div>
+
+                </li>
+            </ul>
+        </div>
+    </div>
+
+</main>
+
+</body>
+</html>

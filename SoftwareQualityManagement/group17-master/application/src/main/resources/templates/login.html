@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html
+        layout:decorator="layout/default"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <title>UIS Login</title>
+</head>
+
+<body class="teal">
+
+<div layout:fragment="content">
+
+    <div class="row">
+        <div class="col s12 m8 offset-m2 l4 offset-l4">
+
+            <div class="login-logo-wrapper">
+                <i class="large material-icons">school</i>
+            </div>
+
+            <h1 class="white-text center">
+                UIS <span class="hide-on-small-only">– University Information System</span>
+            </h1>
+
+            <form class="card-panel z-depth-2" id="login" method="post" th:action="@{/login}">
+                <div class="row">
+                    <div class="input-field col s12">
+                        <input autofocus="autofocus" id="username" name="username" required="required" type="text"/>
+                        <label for="username" th:text="#{username}"></label>
+                    </div>
+
+                    <div class="input-field col s12">
+                        <input id="password" name="password" required="required" type="password"/>
+                        <label for="password" th:text="#{password}"></label>
+                    </div>
+
+                    <div
+                            class="red-text center col s12"
+                            th:if="${loginError != null}"
+                            th:text="${loginError}"
+                    >
+                    </div>
+
+                    <div class="input-field col s12">
+                        <input class="btn-large col s12" th:value="#{log.in}" type="submit"/>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

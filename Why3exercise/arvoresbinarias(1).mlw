@@ -1,0 +1,86 @@
+module BinTree
+
+  use  int.Int
+  use  list.List
+  use  list.Mem
+  use  list.SortedInt
+  use  list.Permut
+  use  list.Length
+
+type tree 'a = Empty | Node (tree 'a) 'a (tree 'a)
+
+
+let rec function size (t: tree 'a) : int =
+match t with
+|  Empty -> 0
+|  Node l _ r -> 1 + (size l) + (size r)
+end
+
+(* k ocorre em t *)
+  predicate memt (t : tree int) (k : int) =
+        match t with
+            | Empty -> false
+            | Node l p r -> 
+                if k < p 
+                then (memt l k)
+                else if k > p
+                     then (memt r k)
+                     else true
+    end
+
+
+(* todos elementos de t <= x *)
+predicate leq_tree (x : int) (t : tree int) =
+  match t with
+    | Empty -> true
+    | Node t1 k t2 -> (k <= x) /\ leq_tree x t1 /\ leq_tree x t2
+end
+
+(* x <= todos elementos de t *)
+predicate geq_tree (x : int) (t : tree int) =
+  match t with
+  | Empty -> true
+  | Node t1 k t2 -> (x <= k) /\ geq_tree x t1 /\ geq_tree x t2
+end
+
+predicate sorted (t : tree int) =
+  match t with
+  | Empty -> true
+  | Node t1 x t2 -> sorted t1 /\ sorted t2 /\ leq_tree x t1 /\ geq_tree x t2
+end
+
+(* t sorted inorder *)
+
+(* t sorted inorder *)
+predicate sortedBT (t : tree int) =
+  match t with
+  | Empty -> true
+  | Node t1 x t2 -> sortedBT t1 /\ sortedBT t2 /\ leq_tree x t1 /\ geq_tree x t2
+end
+
+(* num de ocorrências de x em t *)
+function num_occ (x: 'a) (t: tree 'a) : int =
+  match t with
+  | Empty -> 0
+  | Node t1 k t2 -> let n = num_occ x t1 + num_occ x t2
+                    in if x = k then 1 + n else n
+end
+
+
+(* inserção inorder *)
+let rec add (t : tree int) (v : int) : tree int =
+  requires {sorted t}
+  ensures { (sorted result)}
+  ensures { (size result = size t+1) }
+  ensures { (forall x : int. memt result x <-> (memt t x \/ x = v))}
+  ensures { (forall x : int. num_occ x result =
+                    if x = v then 1 + num_occ x t else num_occ x t)}
+  variant { t }
+  match t with
+   | Empty -> Node (Empty) v (Empty)
+   | Node t1 x t2 ->
+     if v <= x then Node (add t1 v) x t2
+               else Node t1 x (add t2 v)
+  end
+
+end

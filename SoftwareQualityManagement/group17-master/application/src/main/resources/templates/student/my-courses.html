@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html layout:decorator="student/index" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>UIS My Courses</title>
+</head>
+<body>
+<main layout:fragment="main">
+
+    <div class="container">
+        <h1 th:text="#{student.my.courses.label}"></h1>
+
+        <div th:each="semesterProgress : ${studyProgress.semestersProgress}">
+
+
+            <h6 class="section-separator"
+                style='font-weight: bold;'
+                th:if="${studyProgress.currentSemester.getLabel()} == ${semesterProgress.semester.label}"
+                th:text="${semesterProgress.semester.label}"></h6>
+            <h6 class="section-separator"
+                th:if="${studyProgress.currentSemester.getLabel()} != ${semesterProgress.semester.label}"
+                th:text="${semesterProgress.semester.label}"></h6>
+
+            <ul class="collection z-depth-1 courses">
+
+                <li class="collection-item" th:if="${#lists.isEmpty(semesterProgress.cuorseRegistrations)}"
+                    th:text="#{student.my.courses.no.semester.registrations}">
+                </li>
+
+                <li
+                        class="collection-item"
+                        th:classappend="${courseRegistration.state} == ${T(at.ac.tuwien.inso.sqm.service.study_progress.CourseRegistrationState).complete_ok}? 'succeeded' : ''"
+                        th:each="courseRegistration : ${semesterProgress.cuorseRegistrations}"
+                >
+
+                    <a class="secondary-content modal-trigger btn-flat"
+                       th:href="'#unregister-confirm-' + ${courseRegistration.course.id}"
+                       th:if="${courseRegistration.state} == ${T(at.ac.tuwien.inso.sqm.service.study_progress.CourseRegistrationState).in_progress}"
+                       th:text="#{unregister}">
+                    </a>
+
+                    <a class="secondary-content modal-trigger btn"
+                       th:href="'#give-feedback-' + ${courseRegistration.course.id}"
+                       th:if="${courseRegistration.state} == ${T(at.ac.tuwien.inso.sqm.service.study_progress.CourseRegistrationState).needs_feedback}"
+                       th:text="#{give-feedback}">
+                    </a>
+
+                    <a class="secondary-content tooltipped"
+                       data-delay="50" data-position="bottom" data-tooltip="Lehrveranstaltung successfully completed"
+                       th:if="${courseRegistration.state} == ${T(at.ac.tuwien.inso.sqm.service.study_progress.CourseRegistrationState).complete_ok}"><i
+                            class="material-icons">done</i></a>
+
+                    <a class="secondary-content tooltipped"
+                       data-delay="50" data-position="bottom" data-tooltip="Lehrveranstaltung unsatisfactory completed"
+                       th:if="${courseRegistration.state} == ${T(at.ac.tuwien.inso.sqm.service.study_progress.CourseRegistrationState).complete_not_ok}"><i
+                            class="material-icons grey-text">warning</i></a>
+
+                    <a class="title teal-text"
+                       th:href="@{/student/lehrveranstaltungen/__${courseRegistration.course.id}__}"
+                       th:text="${courseRegistration.course.subject.name}"></a>
+                    <div>
+                        <span th:text="${courseRegistration.course.subject.ects}"></span>
+                        <span> ECTS</span>
+                    </div>
+
+                    <div th:if="${courseRegistration.grade != null}">
+                        <span th:text="#{student.studyplandetails.grade}">GradeNote:</span>
+                        <span>: </span>
+                        <span th:text="${courseRegistration.grade.mark.getMark()}"></span>
+                    </div>
+
+                    <!-- Unregister confirmation modal -->
+                    <div class="modal small"
+                         th:id="'unregister-confirm-' + ${courseRegistration.course.id}"
+                         th:if="${courseRegistration.state} == ${T(at.ac.tuwien.inso.sqm.service.study_progress.CourseRegistrationState).in_progress}">
+                        <div class="modal-content">
+                            <h4 th:text="#{student.my.courses.unregister.modal.header}"></h4>
+                            <p th:text="#{student.my.courses.unregister.modal.content(${courseRegistration.course.subject.name})}"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <form method="post"
+                                  th:action="@{/student/abmelden(course=__${courseRegistration.course.id}__)}">
+                                <input class="modal-action modal-close btn" th:value="#{unregister}"
+                                       type="submit"/>
+                            </form>
+                            <a class=" modal-action modal-close waves-effect btn-flat" href="#!"
+                               th:text="#{cancel}"></a>
+                        </div>
+                    </div>
+
+                    <!-- Give feedback modal -->
+                    <div class="modal small"
+                         th:id="'give-feedback-' + ${courseRegistration.course.id}"
+                         th:if="${courseRegistration.state} == ${T(at.ac.tuwien.inso.sqm.service.study_progress.CourseRegistrationState).needs_feedback}">
+                        <div class="modal-content">
+                            <h5 th:text="${courseRegistration.course.subject.name}"></h5>
+                            <p class="grey-text text-darken-2">
+                                <span th:text="${courseRegistration.course.subject.ects}"></span>
+                                <span>ECTS,</span>
+                                <span th:text="${courseRegistration.course.semester.label}"></span>
+                            </p>
+                            <form method="post" th:action="@{/student/feedback}"
+                                  th:id="'feedback-form-' + ${courseRegistration.course.id}">
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <textarea class="materialize-textarea" id="suggestions"
+                                                  length="1024" name="suggestions"></textarea>
+                                        <label for="suggestions"
+                                               th:text="#{student.my.courses.feedback.suggestions}"></label>
+                                    </div>
+                                    <div class="col s12" th:with="id='like-' + ${courseRegistration.course.id}">
+                                        <input name="like" th:id="${id}" type="checkbox"/>
+                                        <label th:for="${id}" th:text="#{student.my.courses.feedback.like}"></label>
+                                    </div>
+                                </div>
+                                <input name="course" th:value="${courseRegistration.course.id}" type="hidden"/>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <a class="modal-action modal-close btn" href="#"
+                               th:onclick="'$(\'#feedback-form-' + ${courseRegistration.course.id} + '\').submit()'"
+                               th:text="#{student.my.courses.feedback.submit}"></a>
+                            <a class=" modal-action modal-close waves-effect btn-flat" href="#"
+                               th:text="#{cancel}"></a>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

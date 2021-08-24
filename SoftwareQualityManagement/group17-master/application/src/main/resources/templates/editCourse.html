@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Title</title>
+    <link href="../static/css/style.css" rel="stylesheet" th:href="@{/min/css/style.css}" type="text/css"/>
+    <script th:src="@{/min/js/main.js}" type="text/javascript"></script>
+
+</head>
+<body onload="myFunction()">
+
+<div th:replace="fragments/header:: header"></div>
+
+
+<h2>This is using the main style</h2>
+
+<div id="description">
+    This is using another style, which is imported into the main style.
+    <h1 th:inline="text">Hello [[${#httpServletRequest.remoteUser}]]! You are editing:</h1>
+</div>
+
+<h3 th:text="${course.name}">
+</h3>
+
+<div sec:authorize="hasRole('ROLE_USER')">
+    Sorry, only admins can edit a course!
+    <a th:href="@{/}">Go back</a>
+</div>
+
+<div sec:authorize="hasRole('ROLE_ADMIN')">
+    <form method="post" th:action="@{/editCourse}" th:object="${course}">
+        <input th:field="*{id}" type="hidden"/>
+        <input th:field="*{name}" type="text"/>
+        <input th:field="*{ects}" type="text"/>
+        <button type="submit">Save course</button>
+    </form>
+</div>
+
+
+</body>
+</html>
